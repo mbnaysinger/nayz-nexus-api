@@ -68,7 +68,7 @@ func (r articleRow) toDomain() *domain.Article {
 }
 
 func (r *PostgresArticleRepository) Create(ctx context.Context, article *domain.Article) error {
-	query := `INSERT INTO nayztech.articles (slug, title, description, lang, tags, cover_url, content_md, status)
+	query := `INSERT INTO articles (slug, title, description, lang, tags, cover_url, content_md, status)
 	          VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 	          RETURNING id, published_at, created_at, updated_at`
 	return r.db.QueryRowxContext(ctx, query,
@@ -78,7 +78,7 @@ func (r *PostgresArticleRepository) Create(ctx context.Context, article *domain.
 }
 
 func (r *PostgresArticleRepository) Update(ctx context.Context, article *domain.Article) error {
-	query := `UPDATE nayztech.articles
+	query := `UPDATE articles
 	          SET slug = $1, title = $2, description = $3, lang = $4, tags = $5,
 	              cover_url = $6, content_md = $7, updated_at = now()
 	          WHERE id = $8
@@ -90,17 +90,17 @@ func (r *PostgresArticleRepository) Update(ctx context.Context, article *domain.
 }
 
 func (r *PostgresArticleRepository) Delete(ctx context.Context, id string) error {
-	_, err := r.db.ExecContext(ctx, `DELETE FROM nayztech.articles WHERE id = $1`, id)
+	_, err := r.db.ExecContext(ctx, `DELETE FROM articles WHERE id = $1`, id)
 	return err
 }
 
 func (r *PostgresArticleRepository) FindByID(ctx context.Context, id string) (*domain.Article, error) {
-	return r.findOne(ctx, `SELECT `+metaColumns+`, content_md FROM nayztech.articles WHERE id = $1`, id)
+	return r.findOne(ctx, `SELECT `+metaColumns+`, content_md FROM articles WHERE id = $1`, id)
 }
 
 func (r *PostgresArticleRepository) FindPublishedBySlug(ctx context.Context, slug string) (*domain.Article, error) {
 	return r.findOne(ctx,
-		`SELECT `+metaColumns+`, content_md FROM nayztech.articles WHERE slug = $1 AND status = 'published'`, slug)
+		`SELECT `+metaColumns+`, content_md FROM articles WHERE slug = $1 AND status = 'published'`, slug)
 }
 
 func (r *PostgresArticleRepository) findOne(ctx context.Context, query string, arg any) (*domain.Article, error) {
@@ -121,12 +121,12 @@ func (r *PostgresArticleRepository) List(ctx context.Context, filter domain.List
 	}
 
 	var total int
-	if err := r.db.GetContext(ctx, &total, `SELECT count(*) FROM nayztech.articles `+where); err != nil {
+	if err := r.db.GetContext(ctx, &total, `SELECT count(*) FROM articles `+where); err != nil {
 		return nil, 0, err
 	}
 
 	// publicados por data de publicação; drafts (admin) entram pela data de criação
-	query := `SELECT ` + metaColumns + ` FROM nayztech.articles ` + where + `
+	query := `SELECT ` + metaColumns + ` FROM articles ` + where + `
 	          ORDER BY COALESCE(published_at, created_at) DESC
 	          LIMIT $1 OFFSET $2`
 	var rows []articleRow
@@ -143,14 +143,14 @@ func (r *PostgresArticleRepository) List(ctx context.Context, filter domain.List
 
 func (r *PostgresArticleRepository) SlugExists(ctx context.Context, slug string, excludeID string) (bool, error) {
 	var exists bool
-	query := `SELECT EXISTS (SELECT 1 FROM nayztech.articles WHERE slug = $1 AND ($2 = '' OR id::text <> $2))`
+	query := `SELECT EXISTS (SELECT 1 FROM articles WHERE slug = $1 AND ($2 = '' OR id::text <> $2))`
 	err := r.db.GetContext(ctx, &exists, query, slug, excludeID)
 	return exists, err
 }
 
 func (r *PostgresArticleRepository) SetStatus(ctx context.Context, id string, status string) (*domain.Article, error) {
 	// primeira publicação carimba published_at; republicar preserva a data original
-	query := `UPDATE nayztech.articles
+	query := `UPDATE articles
 	          SET status = $1,
 	              published_at = CASE WHEN $1 = 'published' THEN COALESCE(published_at, now()) ELSE published_at END,
 	              updated_at = now()

@@ -1,5 +1,3 @@
-CREATE SCHEMA IF NOT EXISTS nayztech;
-
 CREATE TABLE articles (
   id            uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   slug          text NOT NULL UNIQUE,          -- gerado do título, editável
@@ -15,4 +13,4 @@ CREATE TABLE articles (
   updated_at    timestamptz NOT NULL DEFAULT now()
 );
 
-CREATE INDEX idx_articles_published ON nayztech.articles (status, published_at DESC);
+CREATE INDEX idx_articles_published ON articles (status, published_at DESC);
