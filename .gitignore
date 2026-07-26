@@ -1,0 +1,4 @@
+.env
+*.log
+/nayz-nexus-api
+.DS_Store
