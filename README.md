@@ -68,6 +68,7 @@ curl -X PATCH localhost:8082/api/v1/admin/articles/<id>/publish -H "Authorizatio
 - CORS restrito às origens de `CORS_ORIGINS`
 - Rate limit por IP nas rotas públicas (`RATE_LIMIT_RPS`/`RATE_LIMIT_BURST`)
 - Presigned URLs com expiração curta (`PRESIGN_EXPIRY_MINUTES`, default 10) e content-type fixado
+- Mídia pública: no start, `EnsureBucket` aplica leitura anônima (somente `s3:GetObject`) no prefixo `articles/*` do bucket (`MINIO_PUBLIC_READ`, default true) — URLs estáveis com cache/SEO; upload/list/delete seguem autenticados. Atenção: a política do bucket é substituída por essa regra.
 
 ## Registro da aplicação NAYZTECH no nayz-auth
 

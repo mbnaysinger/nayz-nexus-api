@@ -120,8 +120,10 @@ func buildMinioStorage() *storage.MinioStorage {
 	}
 	publicBase := envOr("MINIO_PUBLIC_URL", "http://"+endpoint+"/"+bucket)
 	expiry := time.Duration(envFloat("PRESIGN_EXPIRY_MINUTES", 10)) * time.Minute
+	// leitura anônima do prefixo articles/* (default true — mídia do site é pública)
+	publicRead := envOr("MINIO_PUBLIC_READ", "true") == "true"
 
-	mediaStorage, err := storage.NewMinioStorage(endpoint, accessKey, secretKey, bucket, publicBase, useSSL, expiry)
+	mediaStorage, err := storage.NewMinioStorage(endpoint, accessKey, secretKey, bucket, publicBase, useSSL, expiry, publicRead)
 	if err != nil {
 		slog.Error("Falha ao criar cliente MinIO — upload de mídia indisponível", "erro", err.Error())
 		return nil
